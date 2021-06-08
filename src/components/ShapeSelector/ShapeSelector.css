@@ -1,0 +1,7 @@
+.ShapeSelector{
+    width: 8.33%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #dbfca7;
+}
