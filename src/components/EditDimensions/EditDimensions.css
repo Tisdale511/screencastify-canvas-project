@@ -1,7 +1,3 @@
 .EditDimensions{
-    width: 33.33%;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
     background-color: #fca7a7;
 }

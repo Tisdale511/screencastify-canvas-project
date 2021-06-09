@@ -4,7 +4,7 @@ import './EditDimensions.css'
 const EditDimensions = () => {
     return (
         <div className='EditDimensions'>
-            <h1>edit dimensions</h1>
+            edit dimensions
         </div>
     )
 }

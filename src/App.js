@@ -8,13 +8,13 @@ function App() {
   return (
     <Container className='main'>
       <Row>
-        <Col xs='1' className='column'>
+        <Col xs='2' className='column'>
           <ShapeSelector/>
         </Col>
-        <Col xs='7' className='column'>
+        <Col xs='auto'>
           <Canvas/>
         </Col>
-        <Col xs='8' className='column'>
+        <Col xs='auto' className='column'>
           <EditDimensions/>
         </Col>
       </Row>

@@ -2,10 +2,11 @@ import React from 'react'
 import './Canvas.css'
 
 const Canvas = () => {
+
     return (
-        <div>
-            <h1>canvas</h1>
-        </div>
+        <canvas id='canvas' width='500' height='500'>
+       
+        </canvas>
     )
 }
 
