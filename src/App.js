@@ -57,6 +57,7 @@ function App() {
         }]
       );
   }
+  console.log(shapesArray)
   return (
     <Container className='main'>
       <Row>
