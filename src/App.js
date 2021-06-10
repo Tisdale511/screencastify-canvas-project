@@ -57,12 +57,34 @@ function App() {
         }]
       );
   }
+  
+  // const canvasState = () => {
+  //   let valid = false
+  //   let shapes = shapesArray
+  //   let dragging = false
+  //   let selection = null
+  //   let xDrag = 0
+  //   let yDrag = 0
+  // }
+
+  const handleMouseDown = (e) => {
+    let canvas = canvasRef.current
+    let canvasLocation = canvas.getBoundingClientRect()
+    console.log(canvasLocation)
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX
+    let x = e.clientX - canvasLocation.left
+    let y = e.clientY - canvasLocation.top
+    console.log(`${x}, ${y}`)
+  }
+
+ 
   console.log(shapesArray)
   return (
     <Container className='main'>
       <Row>
         <Col xs='2' className='column'>
-          <div className="ShapeSelector">
+          <div>
               <Button onClick={createRectangle}>
                   Rectangle
               </Button><br/>
@@ -78,7 +100,9 @@ function App() {
             // get the mouse coordinates
             // check if mouse coordinates fall within x y coordinates from an object in shapesArray
             // console.log true or false --> am I inside of an object or no?
-          }}>
+          }}
+          onMouseDown={handleMouseDown}
+          >
           </canvas>
         </Col>
         <Col xs='auto' className='column'>
