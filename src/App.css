@@ -2,6 +2,6 @@ canvas{
   border: solid 1px black;
 }
 
-shapeSelector{
-  border: solid 0px black
+.editDimensions{
+  border: solid 1px black;
 }

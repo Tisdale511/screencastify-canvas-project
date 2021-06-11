@@ -1,6 +1,6 @@
 import React, {useRef, useState, useEffect} from 'react'
 import './App.css';
-import { Container, Row, Col, Button } from 'reactstrap';
+import { Container, Row, Col, Button, Input, FormGroup, Form, Label, Card } from 'reactstrap';
 
 function App() {
   //https://reactjs.org/docs/hooks-reference.html#useref
@@ -64,15 +64,7 @@ function App() {
         }]
       );
   }
-  
-  // const canvasState = () => {
-  //   let valid = false
-  //   let shapes = shapesArray
-  //   let dragging = false
-  //   let selection = null
-  //   let xDrag = 0
-  //   let yDrag = 0
-  // }
+
   
   // returns object containing x and y coordinates of a mouse click
   const getMouseCoordinates = (e) => {
@@ -130,6 +122,38 @@ function App() {
     }
   }
   
+  const showSelectedShapesEditor = (selectedShapes) =>{
+    selectedShapes.map( shape => {
+      return(
+        <div>
+          <Card>    
+            <Button padding="5" color="danger" xs='6'>
+              delete {shape.type}
+            </Button>
+            <p>color editor</p>
+            <Form>
+              <FormGroup row >
+                <Label sm={2}>x</Label>
+                <Col sm={4}>
+                  <Input placeholder={shape.x} />
+                </Col>
+              </FormGroup>
+              <FormGroup row>
+                <Label sm={2}>y</Label>
+                <Col sm={4}>
+                  <Input placeholder={shape.y}/>
+                </Col>
+              </FormGroup>
+            </Form><br/>
+            <div class="slider">circumference<br/>
+              <input type="range" min="1" max="200" value="25" oninput="rangeValue.innerText = this.value"/>
+              <p id="rangeValue">25</p>
+            </div>
+          </Card>
+        </div>
+      )
+    } )
+  }
 
   // const handleMouseUp = (e) => {
   //   let 
@@ -139,7 +163,7 @@ function App() {
   return (
     <Container className='main'>
       <Row>
-        <Col xs='2' className='column'>
+        <Col xs='auto' className='column'>
           <div>
               <Button onClick={createRectangle}>
                   Rectangle
@@ -150,18 +174,40 @@ function App() {
           </div>
         </Col>
         <Col xs='auto'>
-          <canvas id='canvas' width='500' height='500' ref={canvasRef} 
-          onMouseDown={handleMouseDown}
-          >
+          <canvas id='canvas' width='500' height='500' ref={canvasRef} onMouseDown={handleMouseDown}>
           </canvas>
         </Col>
         <Col xs='auto' className='column'>
+          
           {/* design UI element
           .map selectedShapes to display values of object
           look in react strap for a slider to change circle radius
            */}
           <div>
-            edit dimensions
+            <Card>    
+              <Button padding="5" color="danger" xs='6'>
+                delete shape
+              </Button>
+              <p>color editor</p>
+              <Form>
+                <FormGroup row >
+                  <Label sm={2}>x</Label>
+                  <Col sm={4}>
+                    <Input placeholder="" />
+                  </Col>
+                </FormGroup>
+                <FormGroup row>
+                  <Label sm={2}>y</Label>
+                  <Col sm={4}>
+                    <Input placeholder="" />
+                  </Col>
+                </FormGroup>
+              </Form><br/>
+              <div class="slider">circumference<br/>
+                <input type="range" min="1" max="200" value="25" oninput="rangeValue.innerText = this.value"/>
+                <p id="rangeValue">25</p>
+              </div>
+            </Card>
           </div>
         </Col>
       </Row>
