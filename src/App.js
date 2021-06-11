@@ -13,6 +13,7 @@ function App() {
 
   // implemented for fancy state management
   const [shapesArray, setShapesArray] = useState([])
+  const [selectedShapes, setSelectedShapes] = useState([])
 
   const createRectangle = () => {
     let canvas = canvasRef.current
@@ -29,8 +30,8 @@ function App() {
       type: "rectangle",
       width: rectWidth,
       height: rectHeight,
-      xCoord: x,
-      yCoord: y 
+      x: x,
+      y: y 
     }]);
 
   }
@@ -52,8 +53,8 @@ function App() {
         [...shapesArray, {
           type: "circle",
           radius: circleRadius,
-          xCoord: x,
-          yCoord: y
+          x: x,
+          y: y
         }]
       );
   }
@@ -66,20 +67,50 @@ function App() {
   //   let xDrag = 0
   //   let yDrag = 0
   // }
-
-  const handleMouseDown = (e) => {
+  
+  
+  const getMouseCoordinates = (e) => {
     let canvas = canvasRef.current
     let canvasLocation = canvas.getBoundingClientRect()
-    console.log(canvasLocation)
-
+    
+    // was getting a decimal value on x, so used Math.trunc()
     // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX
-    let x = e.clientX - canvasLocation.left
-    let y = e.clientY - canvasLocation.top
+    let x = Math.trunc(e.clientX - canvasLocation.left)
+    let y = Math.trunc(e.clientY - canvasLocation.top)
     console.log(`${x}, ${y}`)
+    return {x, y}
   }
 
+ const isWithinShape = (mousePosition, shape) => {
+  if(shape.type === 'rectangle'){
+    return (shape.x <= mousePosition.x) && (shape.x + shape.width >= mousePosition.x) &&
+    (shape.y <= mousePosition.y) && (shape.y + shape.height >= mousePosition.y)
+  }
+  if(shape.type === 'circle'){
+    let dx = mousePosition.x - shape.x
+    let dy = mousePosition.y - shape.y
+    let dist = Math.abs(Math.sqrt(dx*dx + dy*dy))
+    return(dist <= shape.radius)
+  }
+ }
+
+  const handleMouseDown = (e) => {
+    let mousePosition = getMouseCoordinates(e)
+    for(let i = shapesArray.length -1; i > -1; i -= 1){
+      console.log(shapesArray[i])
+      if(isWithinShape(mousePosition, shapesArray[i])){
+        console.log("true")
+        break
+      }
+    }
+  }
+  
+
+  // const handleMouseUp = (e) => {
+  //   let 
+  // }
+
  
-  console.log(shapesArray)
   return (
     <Container className='main'>
       <Row>
@@ -95,12 +126,6 @@ function App() {
         </Col>
         <Col xs='auto'>
           <canvas id='canvas' width='500' height='500' ref={canvasRef} 
-          onClick={(e) => {
-            console.log(e)
-            // get the mouse coordinates
-            // check if mouse coordinates fall within x y coordinates from an object in shapesArray
-            // console.log true or false --> am I inside of an object or no?
-          }}
           onMouseDown={handleMouseDown}
           >
           </canvas>
