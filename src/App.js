@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react'
+import React, {useRef, useState, useEffect} from 'react'
 import './App.css';
 import { Container, Row, Col, Button } from 'reactstrap';
 
@@ -14,6 +14,10 @@ function App() {
   // implemented for fancy state management
   const [shapesArray, setShapesArray] = useState([])
   const [selectedShapes, setSelectedShapes] = useState([])
+
+  useEffect(() => {
+    console.log("yay", selectedShapes);
+  }, [selectedShapes]);
 
   const createRectangle = () => {
     let canvas = canvasRef.current
@@ -31,7 +35,8 @@ function App() {
       width: rectWidth,
       height: rectHeight,
       x: x,
-      y: y 
+      y: y,
+      color: 'green' 
     }]);
 
   }
@@ -54,7 +59,8 @@ function App() {
           type: "circle",
           radius: circleRadius,
           x: x,
-          y: y
+          y: y,
+          color: 'red'
         }]
       );
   }
@@ -68,7 +74,7 @@ function App() {
   //   let yDrag = 0
   // }
   
-  
+  // returns object containing x and y coordinates of a mouse click
   const getMouseCoordinates = (e) => {
     let canvas = canvasRef.current
     let canvasLocation = canvas.getBoundingClientRect()
@@ -77,30 +83,49 @@ function App() {
     // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX
     let x = Math.trunc(e.clientX - canvasLocation.left)
     let y = Math.trunc(e.clientY - canvasLocation.top)
-    console.log(`${x}, ${y}`)
+    // console.log(`${x}, ${y}`)
     return {x, y}
   }
+  
+  // returns true if mouse coordinates are inside of a shape
+  const isWithinShape = (mousePosition, shape) => {
+    if(shape.type === 'rectangle'){
+      return (shape.x <= mousePosition.x) && (shape.x + shape.width >= mousePosition.x) &&
+      (shape.y <= mousePosition.y) && (shape.y + shape.height >= mousePosition.y)
+    }
+    if(shape.type === 'circle'){
+      let dx = mousePosition.x - shape.x
+      let dy = mousePosition.y - shape.y
+      let dist = Math.abs(Math.sqrt(dx*dx + dy*dy))
+      return(dist <= shape.radius)
+    }
+  }
+  
+  // returns true if shapes are the same
+  const isSameShape = (shape1, shape2) => {
+    return (shape1.type === shape2.type) && (shape1.x === shape2.x) && (shape1.y === shape2.y) && (shape1.radius === shape2.radius) && (shape1.height === shape2.height) && (shape1.width === shape2.width) && (shape1.color === shape2.color)
+  }
 
- const isWithinShape = (mousePosition, shape) => {
-  if(shape.type === 'rectangle'){
-    return (shape.x <= mousePosition.x) && (shape.x + shape.width >= mousePosition.x) &&
-    (shape.y <= mousePosition.y) && (shape.y + shape.height >= mousePosition.y)
+  // returns true if shape is in array
+  const isShapeInArray = (shape, shapeArr) => {
+    return shapeArr.findIndex((currShape) => isSameShape(shape, currShape)) > -1
   }
-  if(shape.type === 'circle'){
-    let dx = mousePosition.x - shape.x
-    let dy = mousePosition.y - shape.y
-    let dist = Math.abs(Math.sqrt(dx*dx + dy*dy))
-    return(dist <= shape.radius)
-  }
- }
 
   const handleMouseDown = (e) => {
     let mousePosition = getMouseCoordinates(e)
-    for(let i = shapesArray.length -1; i > -1; i -= 1){
-      console.log(shapesArray[i])
-      if(isWithinShape(mousePosition, shapesArray[i])){
-        console.log("true")
-        break
+    for(let i = shapesArray.length - 1; i > -1; i -= 1){
+      let currShape = shapesArray[i]
+      if(isWithinShape(mousePosition, currShape)){
+        if(!e.shiftKey){
+          setSelectedShapes([currShape])
+        }else{
+          if(!isShapeInArray(currShape, selectedShapes)){
+            setSelectedShapes([...selectedShapes, currShape])
+          }
+        }
+        break  
+      }else{
+        setSelectedShapes([])
       }
     }
   }
@@ -131,6 +156,10 @@ function App() {
           </canvas>
         </Col>
         <Col xs='auto' className='column'>
+          {/* design UI element
+          .map selectedShapes to display values of object
+          look in react strap for a slider to change circle radius
+           */}
           <div>
             edit dimensions
           </div>
