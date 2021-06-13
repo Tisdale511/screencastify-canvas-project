@@ -12,33 +12,38 @@ function App() {
 
   useEffect(() => {
     console.log("yay", selectedShapes);
+    // drawShape('rectangle');
   }, [selectedShapes]);
 
-  const createRectangle = (color = 'green', width = 50, height = 50) => {
-    let canvas = canvasRef.current
-    let ctx = canvas.getContext('2d')
+  const createRectangle = (canvas, ctx, color = 'green', width = 50, height = 50) => {
+    console.log('canvas', ctx);
     console.log('clr', color)
     ctx.fillStyle = color
     
     // x and y variables allow for flexibility with dimensions, and let the shape appear in the center
     let x = canvas.width/2 - width/2
     let y = canvas.height/2 - height/2
+    
     // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillRect
     ctx.fillRect(x, y, width, height)
+
+    //add border
+    ctx.strokeStyle = 'orange'
+    ctx.lineWidth = 3
+    ctx.strokeRect(x - 4, y - 4, width + 8, height + 8)
+    
     setShapesArray([...shapesArray, {
       type: "rectangle",
       width: width,
       height: height,
       x: x,
       y: y,
-      color: color
+      color: color,
+      selected: false
     }]);
   }
 
-  const createCircle = (color = 'red', radius = 25) => {
-    let canvas = canvasRef.current
-    let ctx = canvas.getContext('2d')
-    
+  const createCircle = (canvas, ctx, color = 'red', radius = 25) => {
     let x = canvas.width/2
     let y = canvas.height/2
     
@@ -54,22 +59,38 @@ function App() {
         radius: radius,
         x: x,
         y: y,
-        color: color
+        color: color,
+        selected: false
       }]
     );
   }
+
+  const drawShape = (type) => {
+    let canvas = canvasRef.current
+    let ctx = canvas.getContext('2d')
+    //loop over the state object and draw each element
+    console.log('stuff', canvas.width)
+    if(type === 'circle'){
+      createCircle(canvas, ctx)
+    }
+    if(type === 'rectangle'){
+      createRectangle(canvas, ctx)
+    }
     
-    // const drawShape = (type) => {
-    //   let canvas = canvasRef.current
-    //   if(type === 'circle'){
-    //     createCircle(canvas)
-    //   }
-    //   if(type === 'rectangle'){
-    //     createRectangle(canvas)
-    //   }
-      
-    // }
-  
+  }
+
+  const addRect = (color = 'green', x, y, width = 50, height = 50, selected = false) => {
+    setShapesArray([...shapesArray, {
+      type: "rectangle",
+      width: width,
+      height: height,
+      x: x,
+      y: y,
+      color: color,
+      selected: selected
+    }]);
+  }
+
   // returns object containing x and y coordinates of a mouse click
   const getMouseCoordinates = (e) => {
     let canvas = canvasRef.current
@@ -159,10 +180,10 @@ function App() {
       <Row>
         <Col xs='auto' className='column'>
           <div>
-              <Button onClick={() => createRectangle()}>
+              <Button onClick={() => drawShape('rectangle')}>
                   Rectangle
               </Button><br/>
-              <Button onClick={() => createCircle()}>
+              <Button onClick={() => drawShape('circle')}>
                   Circle
               </Button>
           </div>
