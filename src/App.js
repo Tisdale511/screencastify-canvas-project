@@ -1,5 +1,5 @@
 import React, {useRef, useState, useEffect} from 'react'
-import './App.css';
+import './App.css'
 import { Container, Row, Col, Button, Input, FormGroup, Form, Label, Card } from 'reactstrap';
 
 function App() {
@@ -8,91 +8,109 @@ function App() {
 
   // implemented for fancy state management
   const [shapesArray, setShapesArray] = useState([])
-  const [selectedShapes, setSelectedShapes] = useState([])
+
+  let mouseOnCanvas = false
 
   useEffect(() => {
-    console.log("yay", selectedShapes);
-    // drawShape('rectangle');
-  }, [selectedShapes]);
+    console.log("yay", shapesArray);
+    if(shapesArray.length > 0){
+      draw()
+    }
+  }, [shapesArray]);
 
-  const createRectangle = (canvas, ctx, color = 'green', width = 50, height = 50) => {
-    console.log('canvas', ctx);
-    console.log('clr', color)
-    ctx.fillStyle = color
+  const drawRectangle = (ctx, shape) => {
+    ctx.fillStyle = shape.color
     
-    // x and y variables allow for flexibility with dimensions, and let the shape appear in the center
-    let x = canvas.width/2 - width/2
-    let y = canvas.height/2 - height/2
-    
+    // add hover
+    if(shape.hover){
+      ctx.shadowColor = 'blue'
+      ctx.shadowBlur = 10
+    }else{
+      ctx.shadowBlur = 0
+    }
+
     // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillRect
-    ctx.fillRect(x, y, width, height)
+    ctx.fillRect(shape.x, shape.y, shape.width, shape.height)
 
-    //add border
-    ctx.strokeStyle = 'orange'
-    ctx.lineWidth = 3
-    ctx.strokeRect(x - 4, y - 4, width + 8, height + 8)
-    
-    setShapesArray([...shapesArray, {
-      type: "rectangle",
-      width: width,
-      height: height,
-      x: x,
-      y: y,
-      color: color,
-      selected: false
-    }]);
+
+    //adding border
+    if(shape.selected){
+      ctx.strokeStyle = 'orange'
+      ctx.lineWidth = 3
+      ctx.strokeRect(shape.x - 4, shape.y - 4, shape.width + 8, shape.height + 8)
+    }
   }
 
-  const createCircle = (canvas, ctx, color = 'red', radius = 25) => {
-    let x = canvas.width/2
-    let y = canvas.height/2
+  const drawCircle = (ctx, shape) => {
     
     // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/beginPath
     ctx.beginPath() 
+    // add hover
+    if(shape.hover){
+      ctx.shadowColor = 'blue'
+      ctx.shadowBlur = 10
+    }else{
+      ctx.shadowBlur = 0
+    }
     // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/arc
-    ctx.arc(x, y, radius, 0, 2*(Math.PI))
-    ctx.fillStyle = color
+    ctx.arc(shape.x, shape.y, shape.radius, 0, 2*(Math.PI))
+    ctx.fillStyle = shape.color
     ctx.fill()
+
+    // adding border
+    if(shape.selected){
+      ctx.strokeStyle = 'orange'
+      ctx.lineWidth = 3
+      ctx.strokeRect(shape.x - 4, shape.y - 4, shape.width + 8, shape.height + 8)
+      
+      ctx.arc(shape.x, shape.y, shape.radius + 4, 0, 2*(Math.PI))
+      ctx.stroke()
+    }
+  }
+
+  const draw = () => {
+    let ctx = canvasRef.current.getContext('2d')
+    ctx.clearRect(0, 0, 500, 500)
+    shapesArray.forEach((shape)=>{
+      if(shape.type === 'circle'){
+        drawCircle(ctx, shape)
+      }
+      if(shape.type === 'rectangle'){
+        drawRectangle(ctx,shape)
+      }
+    })
+  }
+
+  const addRect = () => {
+    setShapesArray([...shapesArray, {
+      type: "rectangle",
+      width: 50,
+      height: 50,
+      x: 225,
+      y: 225,
+      color: 'green',
+      selected: false,
+      hover: false
+    }])
+  }
+
+  const addCircle = () => {
     setShapesArray(
       [...shapesArray, {
         type: "circle",
-        radius: radius,
-        x: x,
-        y: y,
-        color: color,
-        selected: false
+        radius: 25,
+        x: 250,
+        y: 250,
+        color: 'red',
+        selected: false,
+        hover: false
       }]
-    );
-  }
-
-  const drawShape = (type) => {
-    let canvas = canvasRef.current
-    let ctx = canvas.getContext('2d')
-    //loop over the state object and draw each element
-    console.log('stuff', canvas.width)
-    if(type === 'circle'){
-      createCircle(canvas, ctx)
-    }
-    if(type === 'rectangle'){
-      createRectangle(canvas, ctx)
-    }
-    
-  }
-
-  const addRect = (color = 'green', x, y, width = 50, height = 50, selected = false) => {
-    setShapesArray([...shapesArray, {
-      type: "rectangle",
-      width: width,
-      height: height,
-      x: x,
-      y: y,
-      color: color,
-      selected: selected
-    }]);
+    )
   }
 
   // returns object containing x and y coordinates of a mouse click
   const getMouseCoordinates = (e) => {
+    console.log(e)
     let canvas = canvasRef.current
     let canvasLocation = canvas.getBoundingClientRect()
     
@@ -100,7 +118,6 @@ function App() {
     // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/clientX
     let x = Math.trunc(e.clientX - canvasLocation.left)
     let y = Math.trunc(e.clientY - canvasLocation.top)
-    // console.log(`${x}, ${y}`)
     return {x, y}
   }
   
@@ -129,8 +146,8 @@ function App() {
   }
 
   // returns new array with selected element removed
-  const removeShapeFromState = (shape, shapeArr) => {
-    return shapeArr.filter((currShape) => !isSameShape(shape, currShape))
+  const removeShapeFromArray = (shape) => {
+    return shapesArray.filter((currShape) => !isSameShape(shape, currShape))
   }
 
   const handleMouseDown = (e) => {
@@ -138,32 +155,60 @@ function App() {
     for(let i = shapesArray.length - 1; i > -1; i -= 1){
       let currShape = shapesArray[i]
       if(isWithinShape(mousePosition, currShape)){
-        if(!e.shiftKey){
-          if(isShapeInArray(currShape, selectedShapes)){
-            let tempState = selectedShapes
-            let splicedArray = removeShapeFromState(currShape, tempState)
-            setSelectedShapes(splicedArray)
-            console.log('spl', splicedArray)
-          }else{
-            setSelectedShapes([currShape])
-          }
-        }else{
-          if(!isShapeInArray(currShape, selectedShapes)){
-            setSelectedShapes([...selectedShapes, currShape])
-          }
-        }
-        break  
+        setShapesArray(
+          shapesArray.map(shape => {
+            if(isSameShape(shape, currShape)){
+              return {...shape, selected: !shape.selected}
+            }else{
+              return {...shape, selected: e.shiftKey ? shape.selected : false}
+            }
+          })
+        )
+        break
       }else{
-        setSelectedShapes([])
+        setShapesArray(
+          shapesArray.map(shape => {
+              return {...shape, selected: false}
+            }
+          )
+        )
       }
     }
   }
 
   // sets selectedShapes state to correspond with the range slider radius value
-  const handleRangeChange = (index, e) => {
-    setSelectedShapes(selectedShapes.map((shape, idx) => {
-      if(index === idx){
+  const handleRadiusChange = (e, currShape) => {
+    console.log('rad', currShape)
+    setShapesArray(shapesArray.map(shape => {
+      if(isSameShape(shape, currShape)){
         return {...shape, radius: parseInt(e.target.value, 10)}
+      }else{
+        return shape
+      }
+    }))
+  }
+
+  const handleWidthChange = (e, currShape) => {
+    setShapesArray(shapesArray.map(shape => {
+      if(isSameShape(shape, currShape)){
+        return {
+          ...shape, 
+          x: shape.x + shape.width/2 - e.target.value/2, 
+          width: parseInt(e.target.value, 10)
+        }
+      }else{
+        return shape
+      }
+    }))
+  }
+
+  const handleHeightChange = (e, currShape) => {
+    setShapesArray(shapesArray.map(shape => {
+      if(isSameShape(shape, currShape)){
+        return {
+          ...shape, 
+          y: shape.y + shape.height/2 - e.target.value/2, 
+          height: parseInt(e.target.value, 10)}
       }else{
         return shape
       }
@@ -174,60 +219,104 @@ function App() {
   //   let 
   // }
 
- 
+  const handleOnMouseMove = (e) => {
+    let mousePosition = getMouseCoordinates(e)
+    for(let i = shapesArray.length - 1; i > -1; i -= 1){
+      let currShape = shapesArray[i]
+      if(isWithinShape(mousePosition, currShape)){
+        setShapesArray(
+          shapesArray.map(shape => {
+            if(isSameShape(shape, currShape)){
+              return {...shape, hover: true}
+            }else{
+              console.log('here',shape)
+              return {...shape, hover: false}
+            }
+          })
+        )
+        break
+      }else{
+        setShapesArray(
+          shapesArray.map(shape => {
+              return {...shape, hover: false}
+            }
+          )
+        )
+      }
+      
+    }
+  }
+
   return (
     <Container className='main'>
       <Row>
         <Col xs='auto' className='column'>
           <div>
-              <Button onClick={() => drawShape('rectangle')}>
+              <Button onClick={addRect}>
                   Rectangle
               </Button><br/>
-              <Button onClick={() => drawShape('circle')}>
+              <Button onClick={addCircle}>
                   Circle
               </Button>
           </div>
         </Col>
         <Col xs='auto'>
-          <canvas id='canvas' width='500' height='500' ref={canvasRef} onMouseDown={handleMouseDown}>
+          <canvas id='canvas' width='500' height='500' ref={canvasRef} onMouseDown={handleMouseDown} onMouseMove={handleOnMouseMove}>
           </canvas>
         </Col>
         <Col xs='auto' className='column'>       
-          {/* design UI element
-          .map selectedShapes to display values of object
-          look in react strap for a slider to change circle radius
-           */}
-           {selectedShapes.map((shape, index) => {
-            return (
-            <Card key={`editor-${index}`}>    
-              <Button color="danger" xs='6'>
-                delete {shape.type}
-              </Button>
-              <p>color editor</p>
-              {shape.type === 'rectangle' && <Form>
-                <FormGroup row >
-                  <Label sm={2}>x</Label>
-                  <Col sm={4}>
-                    <Input placeholder={shape.width} />
-                  </Col>
-                </FormGroup>
-                <FormGroup row>
-                  <Label sm={2}>y</Label>
-                  <Col sm={4}>
-                    <Input placeholder={shape.height}/>
-                  </Col>
-                </FormGroup>
-              </Form>}
-              
-              {shape.type === 'circle' && <Form >
-                <div className="slider">radius<br/>
-                   <input type="range" min="10" max="200" defaultValue={shape.radius} 
-                  onChange={(e) => handleRangeChange(index, e)}/>
-                  <p id="rangeValue">{shape.radius}</p>
-                </div>
-                </Form>}<br/>
-            </Card>
-           )})}
+           {shapesArray.filter(shape=>shape.selected).map((shape, index) => (
+                <Card key={`editor-${index}`}>    
+                  <Button color="danger" xs='6' onClick={() => moveShapeFromArray(shape)}>
+                    delete {shape.type}
+                  </Button>
+                  <p>color editor</p>
+                  {shape.type === 'rectangle' && <Form>
+                    <FormGroup row >
+                      <Label sm={4}>x</Label>
+                      <Col sm={8}>{shape.x}</Col>
+                    </FormGroup>
+                    <FormGroup row >
+                      <Label sm={4}>y</Label>
+                      <Col sm={8}>{shape.y}</Col>
+                    </FormGroup>
+                    <FormGroup>
+                      <Label sm={4}>width</Label>
+                      
+                      <input type="range" min="10" max="400" defaultValue={shape.width} 
+                      onChange={e => handleWidthChange(e, shape)}/>
+                     
+                    </FormGroup>
+                    <FormGroup>
+                      <Label sm={4}>height</Label>
+                      
+                      <input type="range" min="10" max="400" defaultValue={shape.height} 
+                      onChange={e => handleHeightChange(e, shape)}/>
+                      
+                    </FormGroup>
+                  </Form>}
+                  
+                  {shape.type === 'circle' && <Form >
+                    <FormGroup row >
+                      <Label sm={4}>x</Label>
+                      <Col sm={6}>{shape.x}</Col>
+                    </FormGroup>
+                    <FormGroup row >
+                      <Label sm={4}>y</Label>
+                      <Col sm={6}>{shape.y}</Col>
+                    </FormGroup>
+                    <FormGroup>
+                      <Label sm={4}>radius</Label>
+                      
+                       <input type="range" min="10" max="200" defaultValue={shape.radius} 
+                      onChange={e => handleRadiusChange(e, shape)}/>
+                      <p id="rangeValue">{shape.radius}</p>
+                      
+                    </FormGroup>
+                    </Form>}
+                </Card>
+               )
+            )}
         </Col>
       </Row>
     </Container>
