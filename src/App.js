@@ -15,6 +15,8 @@ function App() {
     console.log("yay", shapesArray);
     if(shapesArray.length > 0){
       draw()
+    }else{
+      canvasRef.current.getContext('2d').clearRect(0, 0, 500, 500)
     }
   }, [shapesArray]);
 
@@ -147,7 +149,7 @@ function App() {
 
   // returns new array with selected element removed
   const removeShapeFromArray = (shape) => {
-    return shapesArray.filter((currShape) => !isSameShape(shape, currShape))
+    setShapesArray(shapesArray.filter((currShape) => !isSameShape(shape, currShape)))
   }
 
   const handleMouseDown = (e) => {
