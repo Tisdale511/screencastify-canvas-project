@@ -8,11 +8,12 @@ function App() {
 
   // implemented for fancy state management
   const [shapesArray, setShapesArray] = useState([])
+  const [isDragging, setIsDragging] = useState(false)
 
   let mouseOnCanvas = false
 
   useEffect(() => {
-    console.log("yay", shapesArray);
+    console.log("shapesArray Updated", shapesArray)
     if(shapesArray.length > 0){
       draw()
     }else{
@@ -25,7 +26,7 @@ function App() {
     
     // add hover
     if(shape.hover){
-      ctx.shadowColor = 'blue'
+      ctx.shadowColor = '#0000FF'
       ctx.shadowBlur = 10
     }else{
       ctx.shadowBlur = 0
@@ -37,7 +38,7 @@ function App() {
 
     //adding border
     if(shape.selected){
-      ctx.strokeStyle = 'orange'
+      ctx.strokeStyle = '#FFA500'
       ctx.lineWidth = 3
       ctx.strokeRect(shape.x - 4, shape.y - 4, shape.width + 8, shape.height + 8)
     }
@@ -49,7 +50,7 @@ function App() {
     ctx.beginPath() 
     // add hover
     if(shape.hover){
-      ctx.shadowColor = 'blue'
+      ctx.shadowColor = '#0000FF'
       ctx.shadowBlur = 10
     }else{
       ctx.shadowBlur = 0
@@ -61,7 +62,7 @@ function App() {
 
     // adding border
     if(shape.selected){
-      ctx.strokeStyle = 'orange'
+      ctx.strokeStyle = '#FFA500'
       ctx.lineWidth = 3
       ctx.strokeRect(shape.x - 4, shape.y - 4, shape.width + 8, shape.height + 8)
       
@@ -90,7 +91,7 @@ function App() {
       height: 50,
       x: 225,
       y: 225,
-      color: 'green',
+      color: '#00FF00',
       selected: false,
       hover: false
     }])
@@ -103,7 +104,7 @@ function App() {
         radius: 25,
         x: 250,
         y: 250,
-        color: 'red',
+        color: '#ff0000',
         selected: false,
         hover: false
       }]
@@ -112,7 +113,6 @@ function App() {
 
   // returns object containing x and y coordinates of a mouse click
   const getMouseCoordinates = (e) => {
-    console.log(e)
     let canvas = canvasRef.current
     let canvasLocation = canvas.getBoundingClientRect()
     
@@ -157,6 +157,7 @@ function App() {
     for(let i = shapesArray.length - 1; i > -1; i -= 1){
       let currShape = shapesArray[i]
       if(isWithinShape(mousePosition, currShape)){
+        setIsDragging(true)
         setShapesArray(
           shapesArray.map(shape => {
             if(isSameShape(shape, currShape)){
@@ -178,9 +179,12 @@ function App() {
     }
   }
 
+  const handleMouseUp = (e) => {
+    setIsDragging(false)
+  }
+
   // sets selectedShapes state to correspond with the range slider radius value
   const handleRadiusChange = (e, currShape) => {
-    console.log('rad', currShape)
     setShapesArray(shapesArray.map(shape => {
       if(isSameShape(shape, currShape)){
         return {...shape, radius: parseInt(e.target.value, 10)}
@@ -217,10 +221,36 @@ function App() {
     }))
   }
 
-  // const handleMouseUp = (e) => {
-  //   let 
-  // }
+  const handleColorChange = (e, currShape) => {
+    setShapesArray(shapesArray.map(shape => {
+      if(isSameShape(shape, currShape)){
+        return {...shape, color: e.target.value}
+      }else{
+        return shape
+      }
+    }))
+  }
 
+
+  // setShapesArray(
+  //   shapesArray.map(shape => {
+  //     if(isSameShape(shape, currShape)){
+  //       let newShape = {...shape, hover: isWithinShape(mousePosition, currShape)}
+  //       if(newShape.selected && isDragging){
+  //         let x = mousePosition.x
+  //         let y = mousePosition.y
+  //         if(shape.type === 'rectangle'){
+
+  //         }
+  //         newShape.x = x;
+  //         newShape.y = y;
+  //       }
+  //       return newShape
+  //     }else{
+  //       return {...shape, hover: false}
+  //     }
+  //   })
+  // )
   const handleOnMouseMove = (e) => {
     let mousePosition = getMouseCoordinates(e)
     for(let i = shapesArray.length - 1; i > -1; i -= 1){
@@ -231,7 +261,6 @@ function App() {
             if(isSameShape(shape, currShape)){
               return {...shape, hover: true}
             }else{
-              console.log('here',shape)
               return {...shape, hover: false}
             }
           })
@@ -245,7 +274,23 @@ function App() {
           )
         )
       }
-      
+      console.log('curr',currShape);
+      if(currShape.selected && isDragging){
+        setShapesArray(
+          shapesArray.map(shape => {
+            if(isSameShape(shape, currShape)){
+              let x = mousePosition.x
+              let y = mousePosition.y
+              if(shape.type === 'rectangle'){
+
+              }
+              return {...shape, x: x, y: y }
+            }else{
+              return {...shape}
+            }
+          })
+        ) 
+      }
     }
   }
 
@@ -263,7 +308,7 @@ function App() {
           </div>
         </Col>
         <Col xs='auto'>
-          <canvas id='canvas' width='500' height='500' ref={canvasRef} onMouseDown={handleMouseDown} onMouseMove={handleOnMouseMove}>
+          <canvas id='canvas' width='500' height='500' ref={canvasRef} onMouseDown={handleMouseDown} onMouseMove={handleOnMouseMove} onMouseUp={handleMouseUp}>
           </canvas>
         </Col>
         <Col xs='auto' className='column'>       
@@ -272,7 +317,12 @@ function App() {
                   <Button color="danger" xs='6' onClick={() => removeShapeFromArray(shape)}>
                     delete {shape.type}
                   </Button>
-                  <p>color editor</p>
+                    <FormGroup row >
+                      <Label sm={4}>color</Label>
+                      <Col sm={8}>
+                        <input type='color' value={shape.color} onChange={(e) => handleColorChange(e, shape)}/>
+                      </Col>
+                    </FormGroup>
                   {shape.type === 'rectangle' && <Form>
                     <FormGroup row >
                       <Label sm={4}>x</Label>
