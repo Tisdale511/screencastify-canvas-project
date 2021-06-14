@@ -267,7 +267,7 @@ function App() {
         <Col xs='auto' className='column'>       
            {shapesArray.filter(shape=>shape.selected).map((shape, index) => (
                 <Card key={`editor-${index}`}>    
-                  <Button color="danger" xs='6' onClick={() => moveShapeFromArray(shape)}>
+                  <Button color="danger" xs='6' onClick={() => removeShapeFromArray(shape)}>
                     delete {shape.type}
                   </Button>
                   <p>color editor</p>
