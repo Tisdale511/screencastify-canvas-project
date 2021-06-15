@@ -11,15 +11,34 @@ function App() {
   const [isDragging, setIsDragging] = useState(false)
   const [clientMousePos, setClientMousePos] = useState({})
   const [lastClickedShape, setLastClickedShape] = useState({})
+  const [lastState, setLastState] = useState([]);
 
-  // https://reactjs.org/docs/hooks-effect.html
+// https://reactjs.org/docs/hooks-effect.html
   useEffect(() => {
-    if(shapesArray.length > 0){
-      draw()
-    }else{
+  //quick comparison
+    let shouldRedraw = JSON.stringify(lastState) !== JSON.stringify(shapesArray)
+
+      //only draw if there is more than 1 shape in the array
+      if(shapesArray.length > 0 ){
+      //only draw if the state has changed since the last update
+        if(shouldRedraw){
+        setLastState(shapesArray);
+        let ctx = canvasRef.current.getContext('2d')
+        ctx.clearRect(0, 0, 500, 500)
+        shapesArray.forEach((shape)=>{
+          if(shape.type === 'circle'){
+          drawCircle(ctx, shape)
+          }
+          if(shape.type === 'rectangle'){
+          drawRectangle(ctx,shape)
+          }
+        })
+      }
+      }else{
+      //clear to remove last element from the array
       canvasRef.current.getContext('2d').clearRect(0, 0, 500, 500)
-    }
-  }, [shapesArray]);
+      }
+  }, [shapesArray, lastState]);
 
   const drawRectangle = (ctx, shape) => {
     ctx.fillStyle = shape.color
@@ -69,19 +88,6 @@ function App() {
       ctx.arc(shape.x, shape.y, shape.radius + 4, 0, 2*(Math.PI))
       ctx.stroke()
     }
-  }
-
-  const draw = () => {
-    let ctx = canvasRef.current.getContext('2d')
-    ctx.clearRect(0, 0, 500, 500)
-    shapesArray.forEach((shape)=>{
-      if(shape.type === 'circle'){
-        drawCircle(ctx, shape)
-      }
-      if(shape.type === 'rectangle'){
-        drawRectangle(ctx,shape)
-      }
-    })
   }
 
   const addRect = () => {
