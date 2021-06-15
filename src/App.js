@@ -13,28 +13,28 @@ function App() {
   const [lastClickedShape, setLastClickedShape] = useState({})
   const [lastState, setLastState] = useState([]);
 
-// https://reactjs.org/docs/hooks-effect.html
+  // https://reactjs.org/docs/hooks-effect.html
   useEffect(() => {
   //quick comparison
     let shouldRedraw = JSON.stringify(lastState) !== JSON.stringify(shapesArray)
 
-      //only draw if there is more than 1 shape in the array
-      if(shapesArray.length > 0 ){
-      //only draw if the state has changed since the last update
-        if(shouldRedraw){
+    //only draw if there is at least 1 shape in the array
+    if(shapesArray.length > 0 ){
+    //only draw if the state has changed since the last update
+      if(shouldRedraw){
         setLastState(shapesArray);
         let ctx = canvasRef.current.getContext('2d')
         ctx.clearRect(0, 0, 500, 500)
         shapesArray.forEach((shape)=>{
           if(shape.type === 'circle'){
-          drawCircle(ctx, shape)
+            drawCircle(ctx, shape)
           }
           if(shape.type === 'rectangle'){
-          drawRectangle(ctx,shape)
+            drawRectangle(ctx,shape)
           }
         })
       }
-      }else{
+    }else{
       //clear to remove last element from the array
       canvasRef.current.getContext('2d').clearRect(0, 0, 500, 500)
       }
