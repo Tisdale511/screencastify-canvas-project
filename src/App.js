@@ -12,6 +12,7 @@ function App() {
   const [clientMousePos, setClientMousePos] = useState({})
   const [lastClickedShape, setLastClickedShape] = useState({})
 
+  // https://reactjs.org/docs/hooks-effect.html
   useEffect(() => {
     if(shapesArray.length > 0){
       draw()
@@ -59,7 +60,7 @@ function App() {
     ctx.fillStyle = shape.color
     ctx.fill()
 
-    // adding border
+    // adding border for clicked shape
     if(shape.selected){
       ctx.strokeStyle = '#FFA500'
       ctx.lineWidth = 3
