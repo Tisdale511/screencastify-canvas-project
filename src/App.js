@@ -1,6 +1,6 @@
 import React, {useRef, useState, useEffect} from 'react'
 import './App.css'
-import { Container, Row, Col, Button, Input, FormGroup, Form, Label, Card } from 'reactstrap';
+import { Container, Row, Col, Button, FormGroup, Form, Label, Card } from 'reactstrap';
 
 function App() {
   //https://reactjs.org/docs/hooks-reference.html#useref
@@ -9,11 +9,10 @@ function App() {
   // implemented for fancy state management
   const [shapesArray, setShapesArray] = useState([])
   const [isDragging, setIsDragging] = useState(false)
-
-  let mouseOnCanvas = false
+  const [clientMousePos, setClientMousePos] = useState({})
+  const [lastClickedShape, setLastClickedShape] = useState({})
 
   useEffect(() => {
-    console.log("shapesArray Updated", shapesArray)
     if(shapesArray.length > 0){
       draw()
     }else{
@@ -154,33 +153,46 @@ function App() {
 
   const handleMouseDown = (e) => {
     let mousePosition = getMouseCoordinates(e)
-    for(let i = shapesArray.length - 1; i > -1; i -= 1){
-      let currShape = shapesArray[i]
-      if(isWithinShape(mousePosition, currShape)){
-        setIsDragging(true)
+    let shapesAtMouse = shapesArray.filter(shape => isWithinShape(mousePosition, shape))
+    let selectedShapes = shapesArray.filter(shape => shape.selected)
+    let clickedShape = shapesAtMouse.reverse()[0]
+
+    //clicking on a shape
+    if(shapesAtMouse.length>0){
+      setIsDragging(true)
+      setClientMousePos({x: e.clientX, y: e.clientY})
+      setLastClickedShape(clickedShape);
+      if(selectedShapes.length<2){
         setShapesArray(
           shapesArray.map(shape => {
-            if(isSameShape(shape, currShape)){
-              return {...shape, selected: !shape.selected}
+            if(isSameShape(shape, clickedShape)){
+              return {...shape, selected: true}
             }else{
               return {...shape, selected: e.shiftKey ? shape.selected : false}
             }
           })
         )
-        break
-      }else{
-        setShapesArray(
-          shapesArray.map(shape => {
-              return {...shape, selected: false}
-            }
-          )
-        )
       }
+    }else{
+      //clear canvas
+      setShapesArray(
+        shapesArray.map(shape => {
+            return {...shape, selected: false}
+        })
+      )
     }
   }
 
   const handleMouseUp = (e) => {
     setIsDragging(false)
+    if(clientMousePos.x === e.clientX && clientMousePos.y === e.clientY){
+      setShapesArray(shapesArray.map(shape => {
+        if(isSameShape(shape, lastClickedShape)){
+          shape.selected = !lastClickedShape.selected
+        }
+        return {...shape}
+      }))
+    }
   }
 
   // sets selectedShapes state to correspond with the range slider radius value
@@ -231,66 +243,46 @@ function App() {
     }))
   }
 
-
-  // setShapesArray(
-  //   shapesArray.map(shape => {
-  //     if(isSameShape(shape, currShape)){
-  //       let newShape = {...shape, hover: isWithinShape(mousePosition, currShape)}
-  //       if(newShape.selected && isDragging){
-  //         let x = mousePosition.x
-  //         let y = mousePosition.y
-  //         if(shape.type === 'rectangle'){
-
-  //         }
-  //         newShape.x = x;
-  //         newShape.y = y;
-  //       }
-  //       return newShape
-  //     }else{
-  //       return {...shape, hover: false}
-  //     }
-  //   })
-  // )
   const handleOnMouseMove = (e) => {
     let mousePosition = getMouseCoordinates(e)
-    for(let i = shapesArray.length - 1; i > -1; i -= 1){
-      let currShape = shapesArray[i]
-      if(isWithinShape(mousePosition, currShape)){
-        setShapesArray(
-          shapesArray.map(shape => {
-            if(isSameShape(shape, currShape)){
-              return {...shape, hover: true}
-            }else{
-              return {...shape, hover: false}
-            }
-          })
-        )
-        break
-      }else{
-        setShapesArray(
-          shapesArray.map(shape => {
-              return {...shape, hover: false}
-            }
-          )
-        )
-      }
-      console.log('curr',currShape);
-      if(currShape.selected && isDragging){
-        setShapesArray(
-          shapesArray.map(shape => {
-            if(isSameShape(shape, currShape)){
-              let x = mousePosition.x
-              let y = mousePosition.y
-              if(shape.type === 'rectangle'){
+    let shapesAtMouse = shapesArray.filter(shape => isWithinShape(mousePosition, shape))
+    let selectedShapes = shapesArray.filter(shape => shape.selected)
 
-              }
-              return {...shape, x: x, y: y }
-            }else{
-              return {...shape}
-            }
-          })
-        ) 
+    // takes first element of hover state
+    let hoverShape = shapesAtMouse.reverse()[0]
+
+    if(shapesAtMouse.length > 0){
+      //calculate transform
+      let xTransform = mousePosition.x  
+      let yTransform = mousePosition.y
+
+      if(hoverShape.type === 'rectangle'){
+        xTransform -= hoverShape.x + hoverShape.width/2
+        yTransform -= hoverShape.y + hoverShape.height/2
+      }else{
+        xTransform -= hoverShape.x
+        yTransform -= hoverShape.y
       }
+
+      //save new coordinates
+      setShapesArray(shapesArray.map(shape => {
+        if(isSameShape(shape, hoverShape)){
+          shape.hover = true;
+        }
+        // if only 1 shape is selected, only move the one with hover: true, otherwise if more than 1 shape is
+        // selected, move all shapes that have selected: true
+        if(isDragging && isShapeInArray(shape, selectedShapes) && isShapeInArray(hoverShape, selectedShapes)){
+          let x = shape.x + xTransform
+          let y = shape.y + yTransform
+          return {...shape, x: x, y: y }
+        }else{
+          return {...shape}
+        }
+      }))
+    }else{
+      setShapesArray(shapesArray.map(shape => {
+        return {...shape, hover: false}
+      }))
     }
   }
 
@@ -323,7 +315,7 @@ function App() {
                         <input type='color' value={shape.color} onChange={(e) => handleColorChange(e, shape)}/>
                       </Col>
                     </FormGroup>
-                  {shape.type === 'rectangle' && <Form>
+                      {shape.type === 'rectangle' && <Form>
                     <FormGroup row >
                       <Label sm={4}>x</Label>
                       <Col sm={8}>{shape.x}</Col>
